@@ -11,10 +11,59 @@
     </head>
     <body>
         <div id="shopping-list">
-            <h1>{{ header || 'Welcome' }}</h1>
+
+            <div class="header">
+                <h1>{{ header || 'Welcome' }}</h1>
+                <button v-if="editing" @click="doEdit(false)" class="btn btn-cancel">Cancel</button>
+                <button v-else @click="doEdit(true)" class="btn btn-cancel">Add Item</button>
+            </div>
+
+            <div v-if="editing" class="add-item form">
+                <input 
+                    @keyup.enter="saveItem" 
+                    type="text" v-model.trim="newItem"
+                    placeholder="Add an Item"
+                >
+                
+                <!-- <label><input type="radio" v-model="newItemPriority" value="high">High</label>
+                <label><input type="radio" v-model="newItemPriority" value="low">Low</label> -->
+                <label>
+                    <input type="checkbox" v-model="newItemHighPriority">
+                    High Priority
+                </label>
+                <button 
+                    v-bind:disabled="newItem.length < 5"
+                    class="btn btn-primary" 
+                    @click="saveItem"
+                    >
+                    Save Item
+                </button>
+            </div>
+
+            <p v-if="items.length === 0">Nice job! You've bought all your items!</p>
+            
+            <!-- <br>
+            {{ newItem }} | {{ newItemHighPriority }}
+            <br><br> -->
+            <!-- <label><input v-model="iceCreamFlavors" type="checkbox" value="vanilla">Vanilla</label>
+            <label><input v-model="iceCreamFlavors" type="checkbox" value="chocolat">Chocolat</label>
+            <label><input v-model="iceCreamFlavors" type="checkbox" value="cookies-and-cream">Cookies and Cream</label>
+            <label><input v-model="iceCreamFlavors" type="checkbox" value="strawberry">Strawberry</label> -->
             <ul>
                 <!-- <li v-for="(item, index) in items" :key="item.id">{{ index }}  {{ item.label }}</li> -->
-                <li v-for="item in items" :key="item.id">{{ item.label }}</li>
+                <li 
+                    v-for="item in reversedItems"
+                    @click="togglePurchased(item)" 
+                    :key="item.id"
+                    class="static-class"
+                    :class="[
+                        item.purchased ? 'strikeout text-gray' : 'underlined',
+                        item.highPriority ? 'priority' : '',
+                        'static-class-in-array'
+                    ]"
+                >
+                    {{ item.label }}
+                </li>
                 <!-- <li v-for="(item, key) in items" :key="item.id">{{ key }}  {{ item.label }}</li> -->
             </ul>
         </div>
@@ -24,18 +73,47 @@
                 data() {
                     return {
                         header: 'Shopping List App',
-
+                        editing: false,
                         // items: {
                         //     'item-1': { id: 1, label: '10 party hats' },
                         //     'item-2': { id: 2, label: '20 board games' },
                         //     'item-3': { id: 3, label: '20 cups' }
                         // },
-
+                        newItem: '',
+                        newItemHighPriority: false,
+                        iceCreamFlavors: [],
                         items: [
-                            { id: 1, label: '10 party hats' },
-                            { id: 2, label: '20 board games' },
-                            { id: 3, label: '20 cups' }
+                            { id: 1, label: '10 party hats', purchased: true, highPriority: false},
+                            { id: 2, label: '20 board games', purchased: true, highPriority: false},
+                            { id: 3, label: '20 cups', purchased: false, highPriority: true}
                         ]
+                    }
+                },
+                computed: {
+                    characterCount(){
+                        return this.newItem.length
+                    },
+                    reversedItems(){
+                      return [...this.items].reverse()
+                    }
+                },
+                methods: {
+                    saveItem(){
+                        this.items.push({
+                            id: this.items.length + 1, 
+                            label: this.newItem,
+                            highPriority: this.newItemHighPriority
+                        })
+                        this.newItem = ''
+                        this.newItemHighPriority = false
+                    },
+                    doEdit(editing){
+                        this.editing = editing
+                        this.newItem = ''
+                        this.newItemHighPriority = false
+                    },
+                    togglePurchased(item){
+                        item.purchased = !item.purchased
                     }
                 }
             })
